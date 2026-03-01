@@ -11,7 +11,7 @@ Browser UI for terminal sessions — runs tmux sessions in your browser via ttyd
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/yayoboy/muzzle/master/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/yayoboy/muzzle/v0.1.1/scripts/install.sh | sh
 ```
 
 Then set your password:
@@ -57,8 +57,8 @@ muzzle service uninstall  # Remove autostart
 
 ## Update
 
-Re-run the installer — it pulls the latest code and rebuilds:
+Re-run the installer for the version you want:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/yayoboy/muzzle/master/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/yayoboy/muzzle/v0.1.1/scripts/install.sh | sh
 ```
