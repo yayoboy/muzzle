@@ -15,16 +15,26 @@ export class ApiClient {
       }
     }
     if(this.token) hdr['Authorization']=`Bearer ${this.token}`;
-    return fetch(`${API_URL}${p}`,{...o,headers:hdr});
+    const r = await fetch(`${API_URL}${p}`,{...o,headers:hdr});
+    if (r.status === 401 && p !== '/api/auth/login') {
+      this.clearToken();
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('muzzle_token');
+        localStorage.removeItem('muzzle_token_expires');
+        window.location.reload();
+      }
+      throw new Error('Session expired');
+    }
+    return r;
   }
   async login(pw:string){const r=await this.request('/api/auth/login',{method:'POST',body:JSON.stringify({password:pw})}); if(!r.ok) throw new Error('Login failed'); return r.json(); }
-  async getSessions(){return (await this.request('/api/sessions')).json(); }
-  async createSession(name?:string){return (await this.request('/api/sessions',{method:'POST',body:JSON.stringify({name})})).json(); }
+  async getSessions(){const r=await this.request('/api/sessions'); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
+  async createSession(name?:string){const r=await this.request('/api/sessions',{method:'POST',body:JSON.stringify({name})}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
   async deleteSession(id:string){await this.request(`/api/sessions/${id}`,{method:'DELETE'}); }
-  async renameSession(id:string,n:string){return (await this.request(`/api/sessions/${id}/rename`,{method:'PUT',body:JSON.stringify({name:n})})).json(); }
-  async getSessionAttachUrl(id:string){return (await this.request(`/api/sessions/${id}/attach`)).json(); }
+  async renameSession(id:string,n:string){const r=await this.request(`/api/sessions/${id}/rename`,{method:'PUT',body:JSON.stringify({name:n})}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
+  async getSessionAttachUrl(id:string){const r=await this.request(`/api/sessions/${id}/attach`); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
   async sendCommand(id:string, command:string){await this.request(`/api/sessions/${id}/command`,{method:'POST',body:JSON.stringify({command})}); }
-  async getCommands(){return (await this.request('/api/commands')).json(); }
+  async getCommands(){const r=await this.request('/api/commands'); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
   async getDiagnostics() {
     const r = await this.request('/api/diagnostics');
     if (!r.ok) throw new Error('Diagnostics failed');
