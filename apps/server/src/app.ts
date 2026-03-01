@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { authRouter } from './routes/auth';
 import { sessionsRouter } from './routes/sessions';
 import { commandsRouter } from './routes/commands';
+import { diagnosticsRouter } from './routes/diagnostics';
 import { errorHandler } from './middleware/error';
 
 const loginLimiter = rateLimit({
@@ -46,6 +47,7 @@ export function createApp() {
   app.use('/api/auth', authRouter);
   app.use('/api/sessions', sessionsRouter);
   app.use('/api/commands', commandsRouter);
+  app.use('/api/diagnostics', diagnosticsRouter);
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });

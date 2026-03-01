@@ -22,3 +22,11 @@ export interface CLIProfile {
   detect: string;
   commands: string[];
 }
+
+export interface DiagnosticsResponse {
+  hostname: string;
+  ip: string;
+  ram: { used: number; total: number };
+  uptime: number;
+  cpus: { count: number; model: string };
+}
