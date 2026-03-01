@@ -13,7 +13,12 @@ die() { printf 'Error: %s\n' "$1" >&2; exit 1; }
 
 is_running() {
   [ -f "$1" ] || return 1
-  kill -0 "$(cat "$1")" 2>/dev/null
+  if kill -0 "$(cat "$1")" 2>/dev/null; then
+    return 0
+  else
+    rm -f "$1"
+    return 1
+  fi
 }
 
 cmd_start() {
@@ -25,7 +30,7 @@ cmd_start() {
   fi
 
   if ! is_running "$SERVER_PID"; then
-    cd "$MUZZLE_HOME/apps/server"
+    cd "$MUZZLE_HOME/apps/server" || die "apps/server not found — is Muzzle installed correctly?"
     nohup node dist/index.js >> "$SERVER_LOG" 2>&1 &
     echo $! > "$SERVER_PID"
     cd "$MUZZLE_HOME"
@@ -33,7 +38,7 @@ cmd_start() {
   fi
 
   if ! is_running "$WEB_PID"; then
-    cd "$MUZZLE_HOME/apps/web"
+    cd "$MUZZLE_HOME/apps/web" || die "apps/web not found — is Muzzle installed correctly?"
     nohup node_modules/.bin/next start >> "$WEB_LOG" 2>&1 &
     echo $! > "$WEB_PID"
     cd "$MUZZLE_HOME"
@@ -47,13 +52,15 @@ cmd_stop() {
   stopped=0
 
   if is_running "$SERVER_PID"; then
-    kill "$(cat "$SERVER_PID")" && rm -f "$SERVER_PID"
+    kill "$(cat "$SERVER_PID")" 2>/dev/null || true
+    rm -f "$SERVER_PID"
     echo "Server stopped."
     stopped=1
   fi
 
   if is_running "$WEB_PID"; then
-    kill "$(cat "$WEB_PID")" && rm -f "$WEB_PID"
+    kill "$(cat "$WEB_PID")" 2>/dev/null || true
+    rm -f "$WEB_PID"
     echo "Web stopped."
     stopped=1
   fi
