@@ -33,6 +33,7 @@ export function Terminal({ url, token }: Props) {
 
     const xterm = new XTerm({
       cursorBlink: true,
+      scrollback: 50000,
       fontSize: 14,
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
       theme: {
