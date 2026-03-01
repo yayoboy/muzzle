@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
 
-export function createTmuxSession(sessionName: string): Promise<string> {
+export function createTmuxSession(sessionName: string, startDir: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const tmux = spawn('tmux', ['new-session', '-d', '-s', sessionName]);
+    const tmux = spawn('tmux', ['new-session', '-d', '-s', sessionName, '-c', startDir]);
     tmux.on('error', reject);
     tmux.on('close', (code: number) => {
       if (code === 0) resolve(sessionName);

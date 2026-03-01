@@ -9,6 +9,7 @@ const SESSIONS: Map<string, Session> = new Map();
 const TTYD_PROCESSES: Map<string, ChildProcess> = new Map();
 const PORT_START = 7680;
 const TOKENS: Map<string, string> = new Map();
+const WORKDIR = process.cwd();
 
 function getNextAvailablePort(): number {
   const usedPorts = new Set(Array.from(SESSIONS.values()).map(s => s.ttydPort));
@@ -27,7 +28,7 @@ export class SessionManager {
 
     const rawToken = randomBytes(32).toString('hex');
     const credential = `muzzle:${rawToken}`;
-    await createTmuxSession(tmuxSession);
+    await createTmuxSession(tmuxSession, WORKDIR);
     const ttydProcess = await startTtyd(tmuxSession, port, credential);
 
     const session: Session = {
