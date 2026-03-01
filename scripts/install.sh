@@ -2,6 +2,7 @@
 set -e
 
 REPO_URL="https://github.com/yayoboy/muzzle.git"
+VERSION="v0.1.1"
 INSTALL_DIR="${MUZZLE_HOME:-$HOME/.local/share/muzzle}"
 BIN_DIR="$HOME/.local/bin"
 
@@ -63,10 +64,11 @@ check_ttyd
 
 if [ -d "$INSTALL_DIR/.git" ]; then
   info "Updating existing installation at $INSTALL_DIR..."
-  git -C "$INSTALL_DIR" pull --ff-only
+  git -C "$INSTALL_DIR" fetch --tags
+  git -C "$INSTALL_DIR" checkout "$VERSION"
 else
-  info "Cloning Muzzle to $INSTALL_DIR..."
-  git clone "$REPO_URL" "$INSTALL_DIR"
+  info "Cloning Muzzle $VERSION to $INSTALL_DIR..."
+  git clone --branch "$VERSION" "$REPO_URL" "$INSTALL_DIR"
 fi
 
 # ---- install deps ----
