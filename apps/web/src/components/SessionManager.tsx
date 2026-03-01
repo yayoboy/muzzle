@@ -5,10 +5,11 @@ import { SessionResponse } from '@muzzle/shared';
 
 interface Props {
   onSelect: (id: string) => void;
+  onDelete: (id: string) => void;
   activeId: string | null;
 }
 
-export function SessionManager({ onSelect, activeId }: Props) {
+export function SessionManager({ onSelect, onDelete, activeId }: Props) {
   const queryClient = useQueryClient();
 
   const { data: sessions = [], isLoading } = useQuery<SessionResponse[]>({
@@ -27,7 +28,10 @@ export function SessionManager({ onSelect, activeId }: Props) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deleteSession(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sessions'] }),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      onDelete(id);
+    },
   });
 
   return (
