@@ -43,9 +43,16 @@ export default function Home() {
     }
   };
 
+  const handleDeleteSession = (deletedId: string) => {
+    if (deletedId === activeId) {
+      setActiveId(null);
+      setTtydUrl(null);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#0a0a0a]">
-      <SessionManager onSelect={handleSelectSession} activeId={activeId} />
+      <SessionManager onSelect={handleSelectSession} onDelete={handleDeleteSession} activeId={activeId} />
       <div className="flex-1 relative overflow-hidden flex flex-col">
         {ttydUrl ? (
           <>
