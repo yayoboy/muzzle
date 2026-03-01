@@ -4,7 +4,16 @@ export class ApiClient {
   setToken(t:string){this.token=t;}
   clearToken(){this.token=null;}
   private async request(p:string,o:RequestInit={}){
-    const hdr:{[k:string]:string}={'Content-Type':'application/json',...(o.headers||{})};
+    const hdr: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (o.headers) {
+      if (o.headers instanceof Headers) {
+        o.headers.forEach((value, key) => { hdr[key] = value; });
+      } else if (Array.isArray(o.headers)) {
+        o.headers.forEach(([key, value]) => { hdr[key] = value; });
+      } else {
+        Object.assign(hdr, o.headers);
+      }
+    }
     if(this.token) hdr['Authorization']=`Bearer ${this.token}`;
     return fetch(`${API_URL}${p}`,{...o,headers:hdr});
   }
@@ -14,6 +23,7 @@ export class ApiClient {
   async deleteSession(id:string){await this.request(`/api/sessions/${id}`,{method:'DELETE'}); }
   async renameSession(id:string,n:string){return (await this.request(`/api/sessions/${id}/rename`,{method:'PUT',body:JSON.stringify({name:n})})).json(); }
   async getSessionAttachUrl(id:string){return (await this.request(`/api/sessions/${id}/attach`)).json(); }
+  async sendCommand(id:string, command:string){await this.request(`/api/sessions/${id}/command`,{method:'POST',body:JSON.stringify({command})}); }
   async getCommands(){return (await this.request('/api/commands')).json(); }
 }
 export const api = new ApiClient();

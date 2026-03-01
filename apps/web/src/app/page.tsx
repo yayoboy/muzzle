@@ -49,7 +49,7 @@ export default function Home() {
       <div className="flex-1 relative overflow-hidden flex flex-col">
         {ttydUrl ? (
           <>
-            <div className="flex-1">
+            <div className="flex-1 overflow-hidden">
               <Terminal url={ttydUrl} />
             </div>
             {activeId && (

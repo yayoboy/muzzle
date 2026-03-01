@@ -1,4 +1,40 @@
 {
-  "compilerOptions": { "target": "ES2020", "lib": ["dom","ES2020"], "jsx": "preserve", "module": "esnext", "strict": true, "esModuleInterop": true, "skipLibCheck": true, "moduleResolution": "bundler", "resolveJsonModule": true, "isolatedModules": true, "noEmit": true, "paths": { "@/*": ["./src/*"] } },
-  "include": ["next-env.d.ts","**/*.ts","**/*.tsx"]
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "dom",
+      "ES2020"
+    ],
+    "jsx": "preserve",
+    "module": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "paths": {
+      "@muzzle/shared": ["../../packages/shared/src/index.ts"],
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "allowJs": true,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
