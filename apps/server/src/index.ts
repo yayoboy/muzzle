@@ -50,8 +50,12 @@ server.on('upgrade', (req, socket, head) => {
       upgradeReq += `${key}: ${v}\r\n`;
     }
     upgradeReq += '\r\n';
+    console.log(`[ws] → ttyd headers: ${upgradeReq.replace(/\r\n/g, ' | ')}`);
     target.write(upgradeReq);
     if (head.length > 0) target.write(head);
+    target.once('data', (chunk) => {
+      console.log(`[ws] ← ttyd response: ${chunk.slice(0, 300).toString().replace(/\r\n/g, ' | ')}`);
+    });
     socket.pipe(target);
     target.pipe(socket);
   });
