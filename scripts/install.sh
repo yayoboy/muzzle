@@ -114,8 +114,21 @@ info "muzzle command installed at $BIN_DIR/muzzle"
 case ":${PATH}:" in
   *":$BIN_DIR:"*) ;;
   *)
-    warn "~/.local/bin is not in your PATH."
-    warn "Add to your shell profile: export PATH=\"\$HOME/.local/bin:\$PATH\""
+    SHELL_RC=""
+    case "$SHELL" in
+      */zsh)  SHELL_RC="$HOME/.zshrc" ;;
+      */bash) SHELL_RC="$HOME/.bashrc" ;;
+    esac
+    if [ -n "$SHELL_RC" ]; then
+      LINE="export PATH=\"\$HOME/.local/bin:\$PATH\""
+      if ! grep -qF "$LINE" "$SHELL_RC" 2>/dev/null; then
+        printf '\n# Added by muzzle installer\n%s\n' "$LINE" >> "$SHELL_RC"
+        info "Added ~/.local/bin to PATH in $SHELL_RC"
+        info "Run: source $SHELL_RC  (or open a new terminal)"
+      fi
+    else
+      warn "Add to your shell profile: export PATH=\"\$HOME/.local/bin:\$PATH\""
+    fi
     ;;
 esac
 
