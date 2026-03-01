@@ -26,7 +26,7 @@ export const log = {
 
   login(ip: string, success: boolean): void {
     const result = success ? `${GRN}✓${R}` : `${RED}✗ failed${R}`;
-    console.log(`${ts()} ${ARROW}  ${BOLD}login${R}    ${USER}  ${ip.padEnd(15)}  ${result}`);
+    console.log(`${ts()} ${ARROW}  ${BOLD}login${R}    ${USER}  ${ip.slice(0, 15).padEnd(15)}  ${result}`);
   },
 
   sessionCreated(name: string): void {
