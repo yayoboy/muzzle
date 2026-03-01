@@ -1,4 +1,17 @@
-import './globals.css';
 import type { Metadata } from 'next';
-export const metadata: Metadata={title:'Muzzle',description:'Mobile terminal multiplexer',viewport:'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}</body></html>;}
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Muzzle',
+  description: 'Terminal session manager',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className="bg-muzzle-bg">
+      <body className="font-mono bg-muzzle-bg text-muzzle-text antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}
