@@ -2,6 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { SessionResponse } from '@muzzle/shared';
+import { useState } from 'react';
+import { DiagnosticsDropdown } from './DiagnosticsDropdown';
 
 interface Props {
   onSelect: (id: string) => void;
@@ -11,6 +13,7 @@ interface Props {
 
 export function SessionManager({ onSelect, onDelete, activeId }: Props) {
   const queryClient = useQueryClient();
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   const { data: sessions = [], isLoading } = useQuery<SessionResponse[]>({
     queryKey: ['sessions'],
@@ -75,6 +78,18 @@ export function SessionManager({ onSelect, onDelete, activeId }: Props) {
             );
           })
         )}
+      </div>
+
+      {/* Diagnostics */}
+      <div className="relative flex items-center px-2 border-l border-muzzle-border flex-shrink-0">
+        <button
+          onClick={() => setShowDiagnostics(v => !v)}
+          className={`px-3 py-1 text-xs transition-colors ${showDiagnostics ? 'text-muzzle-accent' : 'text-muzzle-muted hover:text-muzzle-accent'}`}
+          title="System info"
+        >
+          [i]
+        </button>
+        {showDiagnostics && <DiagnosticsDropdown onClose={() => setShowDiagnostics(false)} />}
       </div>
 
       {/* New session */}
