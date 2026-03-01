@@ -219,7 +219,17 @@ cmd_help() {
 
 cmd_uninstall() {
   cmd_stop 2>/dev/null || true
-  cmd_service_uninstall 2>/dev/null || true
+  plist="$HOME/Library/LaunchAgents/com.muzzle.plist"
+  if [ -f "$plist" ]; then
+    launchctl unload "$plist" 2>/dev/null || true
+    rm -f "$plist"
+  fi
+  unit_file="$HOME/.config/systemd/user/muzzle.service"
+  if [ -f "$unit_file" ]; then
+    systemctl --user disable --now muzzle 2>/dev/null || true
+    rm -f "$unit_file"
+    systemctl --user daemon-reload 2>/dev/null || true
+  fi
   rm -f "$HOME/.local/bin/muzzle"
   rm -rf "$MUZZLE_HOME"
   printf 'Muzzle uninstalled.\n'
