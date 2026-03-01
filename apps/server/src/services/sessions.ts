@@ -101,7 +101,7 @@ export class SessionManager {
   static async sendCommand(id: string, command: string): Promise<void> {
     const session = SESSIONS.get(id);
     if (!session) throw new Error('Session not found');
-    log.command(session.name, command);
     await sendTmuxKeys(session.tmuxSession, command);
+    log.command(session.name, command);
   }
 }
