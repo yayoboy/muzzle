@@ -17,6 +17,7 @@ export default function Home() {
   const { isAuthenticated, isLoading, login } = useAuth();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [ttydUrl, setTtydUrl] = useState<string | null>(null);
+  const [ttydToken, setTtydToken] = useState<string | null>(null);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
 
   if (isLoading) {
@@ -36,8 +37,9 @@ export default function Home() {
   const handleSelectSession = async (id: string) => {
     setActiveId(id);
     try {
-      const { url } = await api.getSessionAttachUrl(id);
+      const { url, token } = await api.getSessionAttachUrl(id);
       setTtydUrl(url);
+      setTtydToken(token);
     } catch (error) {
       console.error('Failed to attach to session', error);
     }
@@ -47,6 +49,7 @@ export default function Home() {
     if (deletedId === activeId) {
       setActiveId(null);
       setTtydUrl(null);
+      setTtydToken(null);
     }
   };
 
@@ -57,7 +60,7 @@ export default function Home() {
         {ttydUrl ? (
           <>
             <div className="flex-1 overflow-hidden">
-              <Terminal url={ttydUrl} />
+              <Terminal url={ttydUrl} token={ttydToken ?? ''} />
             </div>
             {activeId && (
               <QuickCommands 
