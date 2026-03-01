@@ -16,6 +16,11 @@ info "Detected OS: $OS"
 
 need() { command -v "$1" >/dev/null 2>&1; }
 
+check_git() {
+  need git || die "git is required. Install from https://git-scm.com"
+  info "git: $(git --version)"
+}
+
 check_node() {
   need node || die "Node.js is required. Install from https://nodejs.org"
   info "node: $(node --version)"
@@ -27,6 +32,7 @@ check_tmux() {
     return 0
   fi
   if [ "$OS" = "Darwin" ]; then
+    need brew || die "Homebrew is required to auto-install tmux. Install from https://brew.sh, then re-run."
     info "Installing tmux via Homebrew..."
     brew install tmux
   else
@@ -40,6 +46,7 @@ check_ttyd() {
     return 0
   fi
   if [ "$OS" = "Darwin" ]; then
+    need brew || die "Homebrew is required to auto-install ttyd. Install from https://brew.sh, then re-run."
     info "Installing ttyd via Homebrew..."
     brew install ttyd
   else
@@ -47,6 +54,7 @@ check_ttyd() {
   fi
 }
 
+check_git
 check_node
 check_tmux
 check_ttyd
@@ -64,13 +72,16 @@ fi
 # ---- build ----
 
 info "Building packages/shared..."
-cd "$INSTALL_DIR/packages/shared" && npm install --silent && npm run build
+(cd "$INSTALL_DIR/packages/shared" && npm install --silent && npm run build) \
+  || die "Build failed at packages/shared. Re-run the installer."
 
 info "Building apps/server..."
-cd "$INSTALL_DIR/apps/server" && npm install --silent && npm run build
+(cd "$INSTALL_DIR/apps/server" && npm install --silent && npm run build) \
+  || die "Build failed at apps/server. Re-run the installer."
 
 info "Building apps/web..."
-cd "$INSTALL_DIR/apps/web" && npm install --silent && npm run build
+(cd "$INSTALL_DIR/apps/web" && npm install --silent && npm run build) \
+  || die "Build failed at apps/web. Re-run the installer."
 
 # ---- env setup ----
 
@@ -80,7 +91,7 @@ if [ ! -f "$ENV_FILE" ]; then
   cp "$INSTALL_DIR/apps/server/.env.example" "$ENV_FILE"
   JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
   # POSIX-compatible in-place substitution via temp file
-  sed "s/replace-with-random-hex-string/$JWT_SECRET/" "$ENV_FILE" > "${ENV_FILE}.tmp"
+  sed "s|replace-with-random-hex-string|$JWT_SECRET|" "$ENV_FILE" > "${ENV_FILE}.tmp"
   mv "${ENV_FILE}.tmp" "$ENV_FILE"
   warn "Set MUZZLE_PASSWORD in $ENV_FILE before first use!"
 fi
