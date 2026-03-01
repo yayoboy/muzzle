@@ -1,0 +1,116 @@
+#!/bin/sh
+set -e
+
+REPO_URL="https://github.com/yayoboy/muzzle.git"
+INSTALL_DIR="${MUZZLE_HOME:-$HOME/.local/share/muzzle}"
+BIN_DIR="$HOME/.local/bin"
+
+info() { printf '\033[0;32m[muzzle]\033[0m %s\n' "$1"; }
+warn() { printf '\033[0;33m[muzzle]\033[0m WARNING: %s\n' "$1"; }
+die()  { printf '\033[0;31m[muzzle]\033[0m Error: %s\n' "$1" >&2; exit 1; }
+
+OS=$(uname -s)
+info "Detected OS: $OS"
+
+# ---- dependency checks ----
+
+need() { command -v "$1" >/dev/null 2>&1; }
+
+check_node() {
+  need node || die "Node.js is required. Install from https://nodejs.org"
+  info "node: $(node --version)"
+}
+
+check_tmux() {
+  if need tmux; then
+    info "tmux: $(tmux -V)"
+    return 0
+  fi
+  if [ "$OS" = "Darwin" ]; then
+    info "Installing tmux via Homebrew..."
+    brew install tmux
+  else
+    die "tmux is required. Install with: sudo apt install tmux  (or your distro equivalent)"
+  fi
+}
+
+check_ttyd() {
+  if need ttyd; then
+    info "ttyd: found"
+    return 0
+  fi
+  if [ "$OS" = "Darwin" ]; then
+    info "Installing ttyd via Homebrew..."
+    brew install ttyd
+  else
+    die "ttyd is required. See: https://github.com/tsl0922/ttyd/wiki/Installation"
+  fi
+}
+
+check_node
+check_tmux
+check_ttyd
+
+# ---- clone or update ----
+
+if [ -d "$INSTALL_DIR/.git" ]; then
+  info "Updating existing installation at $INSTALL_DIR..."
+  git -C "$INSTALL_DIR" pull --ff-only
+else
+  info "Cloning Muzzle to $INSTALL_DIR..."
+  git clone "$REPO_URL" "$INSTALL_DIR"
+fi
+
+# ---- build ----
+
+info "Building packages/shared..."
+cd "$INSTALL_DIR/packages/shared" && npm install --silent && npm run build
+
+info "Building apps/server..."
+cd "$INSTALL_DIR/apps/server" && npm install --silent && npm run build
+
+info "Building apps/web..."
+cd "$INSTALL_DIR/apps/web" && npm install --silent && npm run build
+
+# ---- env setup ----
+
+ENV_FILE="$INSTALL_DIR/apps/server/.env"
+if [ ! -f "$ENV_FILE" ]; then
+  info "Creating .env from template..."
+  cp "$INSTALL_DIR/apps/server/.env.example" "$ENV_FILE"
+  JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+  # POSIX-compatible in-place substitution via temp file
+  sed "s/replace-with-random-hex-string/$JWT_SECRET/" "$ENV_FILE" > "${ENV_FILE}.tmp"
+  mv "${ENV_FILE}.tmp" "$ENV_FILE"
+  warn "Set MUZZLE_PASSWORD in $ENV_FILE before first use!"
+fi
+
+# ---- install CLI ----
+
+mkdir -p "$BIN_DIR"
+chmod +x "$INSTALL_DIR/bin/muzzle"
+ln -sf "$INSTALL_DIR/bin/muzzle" "$BIN_DIR/muzzle"
+info "muzzle command installed at $BIN_DIR/muzzle"
+
+# ---- PATH check ----
+
+case ":${PATH}:" in
+  *":$BIN_DIR:"*) ;;
+  *)
+    warn "~/.local/bin is not in your PATH."
+    warn "Add to your shell profile: export PATH=\"\$HOME/.local/bin:\$PATH\""
+    ;;
+esac
+
+# ---- done ----
+
+info ""
+info "Installation complete!"
+info ""
+info "Next steps:"
+info "  1. Edit $ENV_FILE and set MUZZLE_PASSWORD"
+info "  2. Run: muzzle start"
+info "  3. Open: http://localhost:3000"
+info ""
+info "Optional — autostart at login:"
+info "  muzzle service install"
