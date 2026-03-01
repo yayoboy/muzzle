@@ -26,6 +26,11 @@ test('GET /api/diagnostics returns system info', async () => {
       model: expect.any(String),
     },
   });
+  expect(res.body.ram.total).toBeGreaterThan(0);
+  expect(res.body.ram.used).toBeGreaterThanOrEqual(0);
+  expect(res.body.ram.used).toBeLessThanOrEqual(res.body.ram.total);
+  expect(res.body.uptime).toBeGreaterThan(0);
+  expect(res.body.cpus.count).toBeGreaterThanOrEqual(1);
 });
 
 test('GET /api/diagnostics returns 401 without token', async () => {
