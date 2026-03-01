@@ -1,13 +1,15 @@
 {
   "name": "muzzle",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "description": "Terminal session manager — browser UI for tmux via ttyd",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "turbo run build",
+    "dev":   "turbo run dev",
+    "test":  "jest"
   },
   "keywords": [],
   "author": "",
