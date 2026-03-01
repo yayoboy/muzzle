@@ -32,11 +32,13 @@ server.on('upgrade', (req, socket, head) => {
   let ttydPort: number;
   try {
     ttydPort = SessionManager.getTtydPort(sessionId, token);
-  } catch {
+  } catch (err) {
+    console.error(`[ws] 401 session=${sessionId} reason=${(err as Error).message}`);
     socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
     socket.destroy();
     return;
   }
+  console.log(`[ws] proxying session=${sessionId} → ttyd:${ttydPort}`);
 
   const target = net.createConnection({ host: '127.0.0.1', port: ttydPort }, () => {
     // Forward the WebSocket upgrade request to ttyd
@@ -54,7 +56,8 @@ server.on('upgrade', (req, socket, head) => {
     target.pipe(socket);
   });
 
-  target.on('error', () => {
+  target.on('error', (err) => {
+    console.error(`[ws] 502 ttyd:${ttydPort} error: ${err.message}`);
     if (!socket.destroyed) {
       socket.write('HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n');
       socket.destroy();
