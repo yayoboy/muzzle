@@ -9,6 +9,8 @@ WEB_PID="$RUN_DIR/web.pid"
 SERVER_LOG="$LOG_DIR/server.log"
 WEB_LOG="$LOG_DIR/web.log"
 
+ENV_FILE="$MUZZLE_HOME/apps/server/.env"
+
 die() { printf 'Error: %s\n' "$1" >&2; exit 1; }
 
 is_running() {
@@ -185,6 +187,23 @@ cmd_service_uninstall() {
   esac
 }
 
+cmd_password() {
+  [ -f "$ENV_FILE" ] || die ".env not found at $ENV_FILE — is Muzzle installed?"
+  printf 'New password: '
+  stty -echo
+  read -r pw1
+  stty echo
+  printf '\nConfirm password: '
+  stty -echo
+  read -r pw2
+  stty echo
+  printf '\n'
+  [ "$pw1" = "$pw2" ] || die "Passwords do not match."
+  [ -n "$pw1" ] || die "Password cannot be empty."
+  sed "s|^MUZZLE_PASSWORD=.*|MUZZLE_PASSWORD=$pw1|" "$ENV_FILE" > "${ENV_FILE}.tmp" && mv "${ENV_FILE}.tmp" "$ENV_FILE"
+  printf 'Password updated. Run: muzzle stop && muzzle start\n'
+}
+
 cmd_help() {
   printf 'Usage: muzzle <command>\n\nCommands:\n'
   printf '  start              Start server and web UI\n'
@@ -194,6 +213,7 @@ cmd_help() {
   printf '  service install    Install as autostart service\n'
   printf '  service uninstall  Remove autostart service\n'
   printf '  uninstall          Remove muzzle completely\n'
+  printf '  password           Change login password\n'
   printf '  help               Show this help\n'
 }
 
@@ -211,6 +231,7 @@ case "${1:-}" in
   stop)      cmd_stop ;;
   status)    cmd_status ;;
   logs)      cmd_logs ;;
+  password)  cmd_password ;;
   uninstall) cmd_uninstall ;;
   help|--help|-h) cmd_help ;;
   service)
