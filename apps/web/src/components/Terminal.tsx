@@ -57,10 +57,9 @@ export function Terminal({ sessionId, token }: Props) {
     const connectTimer = setTimeout(() => {
       if (!mounted) return;
 
-      // WebSocket proxy: Express /ws/:sessionId?token=TOKEN → ttyd (127.0.0.1)
-      // ttyd subprotocol 'tty': Blob byte 48=output, 49=title, 50=prefs
-      const serverPort = process.env.NEXT_PUBLIC_API_PORT || '3001';
-      const wsUrl = `ws://${window.location.hostname}:${serverPort}/ws/${sessionId}?token=${encodeURIComponent(token)}`;
+      // WebSocket: browser → Next.js custom server (port 3000) → Express proxy → ttyd
+      // Using window.location.host preserves port (e.g. 192.168.1.40:3000)
+      const wsUrl = `ws://${window.location.host}/ws/${sessionId}?token=${encodeURIComponent(token)}`;
       socket = new WebSocket(wsUrl, ['tty']);
       socketRef.current = socket;
 
