@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { getStoredToken, initAuth, setToken, clearToken } from '@/lib/auth';
+import { api } from '@/lib/api';
+
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const token = getStoredToken();
     if (token) {
+      api.setToken(token);
       setIsAuthenticated(true);
     }
     setIsLoading(false);
