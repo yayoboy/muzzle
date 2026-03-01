@@ -90,6 +90,100 @@ cmd_logs() {
   tail -n 50 "$WEB_LOG" 2>/dev/null || echo "(no logs yet)"
 }
 
+_service_install_macos() {
+  plist="$HOME/Library/LaunchAgents/com.muzzle.plist"
+  muzzle_bin="$(command -v muzzle 2>/dev/null || echo "$HOME/.local/bin/muzzle")"
+  mkdir -p "$HOME/Library/LaunchAgents"
+
+  cat > "$plist" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.muzzle</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$muzzle_bin</string>
+    <string>start</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>$LOG_DIR/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>$LOG_DIR/launchd.log</string>
+</dict>
+</plist>
+PLIST
+
+  launchctl load "$plist"
+  echo "Service installed (macOS launchd). Muzzle will auto-start at login."
+}
+
+_service_uninstall_macos() {
+  plist="$HOME/Library/LaunchAgents/com.muzzle.plist"
+  [ -f "$plist" ] || die "Service not installed."
+  launchctl unload "$plist"
+  rm -f "$plist"
+  echo "Service removed."
+}
+
+_service_install_linux() {
+  unit_dir="$HOME/.config/systemd/user"
+  unit_file="$unit_dir/muzzle.service"
+  muzzle_bin="$(command -v muzzle 2>/dev/null || echo "$HOME/.local/bin/muzzle")"
+  mkdir -p "$unit_dir"
+
+  cat > "$unit_file" << UNIT
+[Unit]
+Description=Muzzle terminal session manager
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=$muzzle_bin start
+ExecStop=$muzzle_bin stop
+Restart=no
+
+[Install]
+WantedBy=default.target
+UNIT
+
+  systemctl --user daemon-reload
+  systemctl --user enable --now muzzle
+  echo "Service installed (systemd user). Muzzle will auto-start at login."
+}
+
+_service_uninstall_linux() {
+  unit_file="$HOME/.config/systemd/user/muzzle.service"
+  [ -f "$unit_file" ] || die "Service not installed."
+  systemctl --user disable --now muzzle 2>/dev/null || true
+  rm -f "$unit_file"
+  systemctl --user daemon-reload
+  echo "Service removed."
+}
+
+cmd_service_install() {
+  os=$(uname -s)
+  case "$os" in
+    Darwin) _service_install_macos ;;
+    Linux)  _service_install_linux ;;
+    *) die "Unsupported OS: $os" ;;
+  esac
+}
+
+cmd_service_uninstall() {
+  os=$(uname -s)
+  case "$os" in
+    Darwin) _service_uninstall_macos ;;
+    Linux)  _service_uninstall_linux ;;
+    *) die "Unsupported OS: $os" ;;
+  esac
+}
+
 case "${1:-}" in
   start)  cmd_start ;;
   stop)   cmd_stop ;;
