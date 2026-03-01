@@ -25,6 +25,10 @@ export class ApiClient {
   async getSessionAttachUrl(id:string){return (await this.request(`/api/sessions/${id}/attach`)).json(); }
   async sendCommand(id:string, command:string){await this.request(`/api/sessions/${id}/command`,{method:'POST',body:JSON.stringify({command})}); }
   async getCommands(){return (await this.request('/api/commands')).json(); }
-  async getDiagnostics(){return (await this.request('/api/diagnostics')).json(); }
+  async getDiagnostics() {
+    const r = await this.request('/api/diagnostics');
+    if (!r.ok) throw new Error('Diagnostics failed');
+    return r.json();
+  }
 }
 export const api = new ApiClient();
