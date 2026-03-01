@@ -67,6 +67,9 @@ cmd_stop() {
     stopped=1
   fi
 
+  # Kill any orphaned ttyd processes from previous server runs
+  pkill -f "ttyd.*--writable" 2>/dev/null || true
+
   if [ "$stopped" -eq 0 ]; then echo "Muzzle is not running."; fi
 }
 

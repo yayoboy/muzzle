@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ChildProcess } from 'child_process';
 import { randomBytes } from 'crypto';
+import * as net from 'net';
 import { createTmuxSession, killTmuxSession, sendTmuxKeys } from './tmux';
 import { startTtyd } from './ttyd';
 import { Session, SessionResponse } from '@muzzle/shared';
@@ -12,10 +13,18 @@ const PORT_START = 7680;
 const TOKENS: Map<string, string> = new Map();
 const WORKDIR = process.cwd();
 
-function getNextAvailablePort(): number {
-  const usedPorts = new Set(Array.from(SESSIONS.values()).map(s => s.ttydPort));
+function isPortFree(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => server.close(() => resolve(true)));
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+async function getNextAvailablePort(): Promise<number> {
   let port = PORT_START;
-  while (usedPorts.has(port)) {
+  while (!(await isPortFree(port))) {
     port++;
   }
   return port;
@@ -25,7 +34,7 @@ export class SessionManager {
   static async createSession(name?: string): Promise<SessionResponse> {
     const id = uuidv4();
     const tmuxSession = `muzzle-${id}`;
-    const port = getNextAvailablePort();
+    const port = await getNextAvailablePort();
 
     const rawToken = randomBytes(32).toString('hex');
     await createTmuxSession(tmuxSession, WORKDIR);
