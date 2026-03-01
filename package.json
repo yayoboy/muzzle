@@ -15,6 +15,10 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

@@ -69,18 +69,24 @@ else
   git clone "$REPO_URL" "$INSTALL_DIR"
 fi
 
+# ---- install deps ----
+
+info "Installing dependencies..."
+(cd "$INSTALL_DIR" && npm install --silent) \
+  || die "npm install failed. Re-run the installer."
+
 # ---- build ----
 
 info "Building packages/shared..."
-(cd "$INSTALL_DIR/packages/shared" && npm install --silent && npm run build) \
+(cd "$INSTALL_DIR/packages/shared" && npm run build) \
   || die "Build failed at packages/shared. Re-run the installer."
 
 info "Building apps/server..."
-(cd "$INSTALL_DIR/apps/server" && npm install --silent && npm run build) \
+(cd "$INSTALL_DIR/apps/server" && npm run build) \
   || die "Build failed at apps/server. Re-run the installer."
 
 info "Building apps/web..."
-(cd "$INSTALL_DIR/apps/web" && npm install --silent && npm run build) \
+(cd "$INSTALL_DIR/apps/web" && npm run build) \
   || die "Build failed at apps/web. Re-run the installer."
 
 # ---- env setup ----
