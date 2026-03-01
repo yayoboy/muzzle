@@ -6,9 +6,10 @@ import '@xterm/xterm/css/xterm.css';
 
 interface Props {
   url: string;
+  token: string;
 }
 
-export function Terminal({ url }: Props) {
+export function Terminal({ url, token }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -58,12 +59,13 @@ export function Terminal({ url }: Props) {
       // ttyd protocol (subprotocol 'tty'):
       // Server → Blob: byte 48('0')=output, 49('1')=title, 50('2')=prefs
       // Client → string: '0'+input, '1'+resizeJSON; first msg = auth token JSON
-      const wsUrl = url.replace(/^http/, 'ws') + '/ws';
+      const host = url.replace(/^https?:\/\//, '');
+      const wsUrl = `ws://muzzle:${token}@${host}/ws`;
       socket = new WebSocket(wsUrl, ['tty']);
       socketRef.current = socket;
 
       socket.onopen = () => {
-        socket!.send(JSON.stringify({ AuthToken: '' }));
+        socket!.send(JSON.stringify({ AuthToken: btoa('muzzle:' + token) }));
         xterm.focus();
       };
 
@@ -113,7 +115,7 @@ export function Terminal({ url }: Props) {
       socket?.close();
       xterm.dispose();
     };
-  }, [url]);
+  }, [url, token]);
 
   return (
     <div className="w-full h-full flex flex-col bg-[#0a0a0a]">
