@@ -20,7 +20,6 @@ app.prepare().then(() => {
       return;
     }
 
-    console.log(`[ws] upgrade → ${req.url}`);
     const target = net.createConnection({ host: '127.0.0.1', port: EXPRESS_PORT }, () => {
       let upgradeReq = `GET ${req.url} HTTP/1.1\r\n`;
       upgradeReq += `Host: 127.0.0.1:${EXPRESS_PORT}\r\n`;
@@ -36,7 +35,7 @@ app.prepare().then(() => {
       target.pipe(socket);
     });
 
-    target.on('error', (err) => { console.error(`[ws] proxy error: ${err.message}`); if (!socket.destroyed) socket.destroy(); });
+    target.on('error', () => { if (!socket.destroyed) socket.destroy(); });
     socket.on('error', () => { if (!target.destroyed) target.destroy(); });
     target.on('close', () => { if (!socket.destroyed) socket.destroy(); });
     socket.on('close', () => { if (!target.destroyed) target.destroy(); });

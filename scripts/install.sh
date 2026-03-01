@@ -2,7 +2,7 @@
 set -e
 
 REPO_URL="https://github.com/yayoboy/muzzle.git"
-VERSION="v0.1.1"
+VERSION="v0.1.2"
 INSTALL_DIR="${MUZZLE_HOME:-$HOME/.local/share/muzzle}"
 BIN_DIR="$HOME/.local/bin"
 
