@@ -34,7 +34,9 @@ export function createApp() {
   // Timeout: 30 s for all requests
   app.use((_req, res, next) => {
     res.setTimeout(30_000, () => {
-      res.status(408).json({ error: 'Request timeout' });
+      if (!res.headersSent) {
+        res.status(408).json({ error: 'Request timeout' });
+      }
     });
     next();
   });
