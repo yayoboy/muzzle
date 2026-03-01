@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { createApp } from './app';
+import { log } from './logger';
 
 const required = ['JWT_SECRET', 'MUZZLE_PASSWORD'] as const;
 for (const key of required) {
@@ -10,4 +11,4 @@ for (const key of required) {
 }
 
 const PORT = process.env.PORT || 3001;
-createApp().listen(PORT, () => console.log(`Muzzle server running on ${PORT}`));
+createApp().listen(PORT, () => log.startup(PORT, process.cwd()));

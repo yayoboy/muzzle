@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { createTmuxSession, killTmuxSession, sendTmuxKeys } from './tmux';
 import { startTtyd } from './ttyd';
 import { Session, SessionResponse } from '@muzzle/shared';
+import { log } from '../logger';
 
 const SESSIONS: Map<string, Session> = new Map();
 const TTYD_PROCESSES: Map<string, ChildProcess> = new Map();
@@ -43,6 +44,7 @@ export class SessionManager {
     SESSIONS.set(id, session);
     TTYD_PROCESSES.set(id, ttydProcess);
     TOKENS.set(id, rawToken);
+    log.sessionCreated(session.name);
 
     ttydProcess.on('close', () => {
       console.log(`ttyd process for session ${id} closed`);
@@ -75,6 +77,7 @@ export class SessionManager {
     await killTmuxSession(session.tmuxSession).catch(console.error);
     SESSIONS.delete(id);
     TOKENS.delete(id);
+    log.sessionDeleted(session.name);
   }
 
   static async listSessions(): Promise<SessionResponse[]> {
@@ -98,6 +101,7 @@ export class SessionManager {
   static async sendCommand(id: string, command: string): Promise<void> {
     const session = SESSIONS.get(id);
     if (!session) throw new Error('Session not found');
+    log.command(session.name, command);
     await sendTmuxKeys(session.tmuxSession, command);
   }
 }
