@@ -5,11 +5,11 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 
 interface Props {
-  url: string;
+  sessionId: string;
   token: string;
 }
 
-export function Terminal({ url, token }: Props) {
+export function Terminal({ sessionId, token }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -57,16 +57,15 @@ export function Terminal({ url, token }: Props) {
     const connectTimer = setTimeout(() => {
       if (!mounted) return;
 
-      // ttyd protocol (subprotocol 'tty'):
-      // Server → Blob: byte 48('0')=output, 49('1')=title, 50('2')=prefs
-      // Client → string: '0'+input, '1'+resizeJSON; first msg = auth token JSON
-      const host = url.replace(/^https?:\/\//, '');
-      const wsUrl = `ws://muzzle:${token}@${host}/ws`;
+      // WebSocket proxy: Express /ws/:sessionId?token=TOKEN → ttyd (127.0.0.1)
+      // ttyd subprotocol 'tty': Blob byte 48=output, 49=title, 50=prefs
+      const serverPort = process.env.NEXT_PUBLIC_API_PORT || '3001';
+      const wsUrl = `ws://${window.location.hostname}:${serverPort}/ws/${sessionId}?token=${encodeURIComponent(token)}`;
       socket = new WebSocket(wsUrl, ['tty']);
       socketRef.current = socket;
 
       socket.onopen = () => {
-        socket!.send(JSON.stringify({ AuthToken: btoa('muzzle:' + token) }));
+        socket!.send(JSON.stringify({ AuthToken: '' }));
         xterm.focus();
       };
 
@@ -116,7 +115,7 @@ export function Terminal({ url, token }: Props) {
       socket?.close();
       xterm.dispose();
     };
-  }, [url, token]);
+  }, [sessionId, token]);
 
   return (
     <div className="w-full h-full flex flex-col bg-[#0a0a0a]">

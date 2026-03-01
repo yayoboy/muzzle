@@ -38,7 +38,7 @@ export function SessionManager({ onSelect, onDelete, activeId }: Props) {
   });
 
   return (
-    <div className="w-full bg-muzzle-surface border-b border-muzzle-border flex items-stretch overflow-x-auto scrollbar-hide min-h-[40px]">
+    <div className="w-full bg-muzzle-surface border-b border-muzzle-border flex items-stretch min-h-[40px]">
       {/* Logo */}
       <div className="px-4 flex items-center border-r border-muzzle-border flex-shrink-0">
         <span className="text-muzzle-accent text-xs font-bold tracking-widest select-none">MUZZLE</span>

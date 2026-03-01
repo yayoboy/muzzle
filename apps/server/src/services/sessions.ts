@@ -28,9 +28,8 @@ export class SessionManager {
     const port = getNextAvailablePort();
 
     const rawToken = randomBytes(32).toString('hex');
-    const credential = `muzzle:${rawToken}`;
     await createTmuxSession(tmuxSession, WORKDIR);
-    const ttydProcess = await startTtyd(tmuxSession, port, credential);
+    const ttydProcess = await startTtyd(tmuxSession, port);
 
     const session: Session = {
       id,
@@ -96,6 +95,14 @@ export class SessionManager {
       url: `http://127.0.0.1:${session.ttydPort}`,
       token: TOKENS.get(id) ?? '',
     };
+  }
+
+  static getTtydPort(id: string, token: string): number {
+    const session = SESSIONS.get(id);
+    if (!session) throw new Error('Session not found');
+    const stored = TOKENS.get(id);
+    if (!stored || stored !== token) throw new Error('Invalid token');
+    return session.ttydPort;
   }
 
   static async sendCommand(id: string, command: string): Promise<void> {

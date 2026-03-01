@@ -16,7 +16,6 @@ const Terminal = dynamic(() => import('@/components/Terminal').then(m => m.Termi
 export default function Home() {
   const { isAuthenticated, isLoading, login } = useAuth();
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [ttydUrl, setTtydUrl] = useState<string | null>(null);
   const [ttydToken, setTtydToken] = useState<string | null>(null);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
 
@@ -36,9 +35,9 @@ export default function Home() {
 
   const handleSelectSession = async (id: string) => {
     setActiveId(id);
+    setTtydToken(null);
     try {
-      const { url, token } = await api.getSessionAttachUrl(id);
-      setTtydUrl(url);
+      const { token } = await api.getSessionAttachUrl(id);
       setTtydToken(token);
     } catch (error) {
       console.error('Failed to attach to session', error);
@@ -48,7 +47,6 @@ export default function Home() {
   const handleDeleteSession = (deletedId: string) => {
     if (deletedId === activeId) {
       setActiveId(null);
-      setTtydUrl(null);
       setTtydToken(null);
     }
   };
@@ -57,10 +55,10 @@ export default function Home() {
     <div className="h-screen flex flex-col bg-[#0a0a0a]">
       <SessionManager onSelect={handleSelectSession} onDelete={handleDeleteSession} activeId={activeId} />
       <div className="flex-1 relative overflow-hidden flex flex-col">
-        {ttydUrl ? (
+        {activeId && ttydToken ? (
           <>
             <div className="flex-1 overflow-hidden">
-              <Terminal url={ttydUrl} token={ttydToken ?? ''} />
+              <Terminal sessionId={activeId} token={ttydToken} />
             </div>
             {activeId && (
               <QuickCommands 
