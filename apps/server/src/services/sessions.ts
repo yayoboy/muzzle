@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ChildProcess } from 'child_process';
+import { randomBytes } from 'crypto';
 import { createTmuxSession, killTmuxSession, sendTmuxKeys } from './tmux';
 import { startTtyd } from './ttyd';
 import { Session, SessionResponse } from '@muzzle/shared';
@@ -7,6 +8,7 @@ import { Session, SessionResponse } from '@muzzle/shared';
 const SESSIONS: Map<string, Session> = new Map();
 const TTYD_PROCESSES: Map<string, ChildProcess> = new Map();
 const PORT_START = 7680;
+const TOKENS: Map<string, string> = new Map();
 
 function getNextAvailablePort(): number {
   const usedPorts = new Set(Array.from(SESSIONS.values()).map(s => s.ttydPort));
@@ -23,8 +25,10 @@ export class SessionManager {
     const tmuxSession = `muzzle-${id}`;
     const port = getNextAvailablePort();
 
+    const rawToken = randomBytes(32).toString('hex');
+    const credential = `muzzle:${rawToken}`;
     await createTmuxSession(tmuxSession);
-    const ttydProcess = await startTtyd(tmuxSession, port);
+    const ttydProcess = await startTtyd(tmuxSession, port, credential);
 
     const session: Session = {
       id,
@@ -37,6 +41,7 @@ export class SessionManager {
 
     SESSIONS.set(id, session);
     TTYD_PROCESSES.set(id, ttydProcess);
+    TOKENS.set(id, rawToken);
 
     ttydProcess.on('close', () => {
       console.log(`ttyd process for session ${id} closed`);
@@ -68,6 +73,7 @@ export class SessionManager {
 
     await killTmuxSession(session.tmuxSession).catch(console.error);
     SESSIONS.delete(id);
+    TOKENS.delete(id);
   }
 
   static async listSessions(): Promise<SessionResponse[]> {
@@ -79,11 +85,12 @@ export class SessionManager {
     }));
   }
 
-  static async getSessionAttachUrl(id: string): Promise<{ url: string }> {
+  static async getSessionAttachUrl(id: string): Promise<{ url: string; token: string }> {
     const session = SESSIONS.get(id);
     if (!session) throw new Error('Session not found');
     return {
-      url: `http://localhost:${session.ttydPort}`
+      url: `http://127.0.0.1:${session.ttydPort}`,
+      token: TOKENS.get(id) ?? '',
     };
   }
 
