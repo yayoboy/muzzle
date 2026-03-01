@@ -39,7 +39,7 @@ cmd_start() {
 
   if ! is_running "$WEB_PID"; then
     cd "$MUZZLE_HOME/apps/web" || die "apps/web not found — is Muzzle installed correctly?"
-    nohup node_modules/.bin/next start >> "$WEB_LOG" 2>&1 &
+    nohup node_modules/.bin/next start --hostname 0.0.0.0 >> "$WEB_LOG" 2>&1 &
     echo $! > "$WEB_PID"
     cd "$MUZZLE_HOME"
     echo "Web started (PID $(cat "$WEB_PID"), port 3000)"
