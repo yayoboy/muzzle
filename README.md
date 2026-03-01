@@ -26,10 +26,12 @@ nano ~/.local/share/muzzle/apps/server/.env
 ## Usage
 
 ```sh
-muzzle start    # Start server (port 3001) and web UI (port 3000)
-muzzle stop     # Stop all processes
-muzzle status   # Show running status and PIDs
-muzzle logs     # Tail recent logs
+muzzle start      # Start server (port 3001) and web UI (port 3000)
+muzzle stop       # Stop all processes
+muzzle status     # Show running status and PIDs
+muzzle logs       # Tail recent logs
+muzzle help       # Show all commands
+muzzle uninstall  # Remove muzzle completely
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and log in with your password.

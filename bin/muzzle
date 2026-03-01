@@ -185,11 +185,34 @@ cmd_service_uninstall() {
   esac
 }
 
+cmd_help() {
+  printf 'Usage: muzzle <command>\n\nCommands:\n'
+  printf '  start              Start server and web UI\n'
+  printf '  stop               Stop all processes\n'
+  printf '  status             Show running status\n'
+  printf '  logs               Show recent logs\n'
+  printf '  service install    Install as autostart service\n'
+  printf '  service uninstall  Remove autostart service\n'
+  printf '  uninstall          Remove muzzle completely\n'
+  printf '  help               Show this help\n'
+}
+
+cmd_uninstall() {
+  cmd_stop 2>/dev/null || true
+  cmd_service_uninstall 2>/dev/null || true
+  rm -f "$HOME/.local/bin/muzzle"
+  rm -rf "$MUZZLE_HOME"
+  printf 'Muzzle uninstalled.\n'
+  printf 'Remove from shell profile: export PATH="$HOME/.local/bin:$PATH"\n'
+}
+
 case "${1:-}" in
-  start)  cmd_start ;;
-  stop)   cmd_stop ;;
-  status) cmd_status ;;
-  logs)   cmd_logs ;;
+  start)     cmd_start ;;
+  stop)      cmd_stop ;;
+  status)    cmd_status ;;
+  logs)      cmd_logs ;;
+  uninstall) cmd_uninstall ;;
+  help|--help|-h) cmd_help ;;
   service)
     case "${2:-}" in
       install)   cmd_service_install ;;
@@ -198,13 +221,7 @@ case "${1:-}" in
     esac
     ;;
   *)
-    printf 'Usage: muzzle <command>\n\nCommands:\n'
-    printf '  start              Start server and web\n'
-    printf '  stop               Stop all processes\n'
-    printf '  status             Show running status\n'
-    printf '  logs               Show recent logs\n'
-    printf '  service install    Install as autostart service\n'
-    printf '  service uninstall  Remove autostart service\n'
+    cmd_help
     exit 1
     ;;
 esac
